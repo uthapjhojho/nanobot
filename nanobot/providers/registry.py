@@ -63,6 +63,12 @@ class ProviderSpec:
     # Provider supports cache_control on content blocks (e.g. Anthropic prompt caching)
     supports_prompt_caching: bool = False
 
+    # LiteLLM prefix for model routing, e.g. "anthropic" for "anthropic/claude-3"
+    litellm_prefix: str = ""
+
+    # Prefixes that should NOT be auto-added (model already has provider prefix)
+    skip_prefixes: tuple[str, ...] = ()
+
     @property
     def label(self) -> str:
         return self.display_name or self.name.title()
@@ -81,6 +87,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Custom",
         backend="openai_compat",
         is_direct=True,
+        litellm_prefix="",
     ),
 
     # === Azure OpenAI (direct API calls with API version 2024-10-21) =====
@@ -91,6 +98,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Azure OpenAI",
         backend="azure_openai",
         is_direct=True,
+        litellm_prefix="azure",
     ),
     # === Gateways (detected by api_key / api_base, not model name) =========
     # Gateways can route any model, so they win in fallback.
@@ -106,6 +114,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         detect_by_base_keyword="openrouter",
         default_api_base="https://openrouter.ai/api/v1",
         supports_prompt_caching=True,
+        litellm_prefix="",
     ),
     # AiHubMix: global gateway, OpenAI-compatible interface.
     # strip_model_prefix=True: doesn't understand "anthropic/claude-3",
@@ -120,6 +129,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         detect_by_base_keyword="aihubmix",
         default_api_base="https://aihubmix.com/v1",
         strip_model_prefix=True,
+        litellm_prefix="",
     ),
     # SiliconFlow (硅基流动): OpenAI-compatible gateway, model names keep org prefix
     ProviderSpec(
@@ -131,6 +141,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_gateway=True,
         detect_by_base_keyword="siliconflow",
         default_api_base="https://api.siliconflow.cn/v1",
+        litellm_prefix="",
     ),
 
     # VolcEngine (火山引擎): OpenAI-compatible gateway, pay-per-use models
@@ -143,6 +154,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_gateway=True,
         detect_by_base_keyword="volces",
         default_api_base="https://ark.cn-beijing.volces.com/api/v3",
+        litellm_prefix="",
     ),
 
     # VolcEngine Coding Plan (火山引擎 Coding Plan): same key as volcengine
@@ -155,6 +167,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_gateway=True,
         default_api_base="https://ark.cn-beijing.volces.com/api/coding/v3",
         strip_model_prefix=True,
+        litellm_prefix="",
     ),
 
     # BytePlus: VolcEngine international, pay-per-use models
@@ -168,6 +181,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         detect_by_base_keyword="bytepluses",
         default_api_base="https://ark.ap-southeast.bytepluses.com/api/v3",
         strip_model_prefix=True,
+        litellm_prefix="",
     ),
 
     # BytePlus Coding Plan: same key as byteplus
@@ -180,6 +194,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_gateway=True,
         default_api_base="https://ark.ap-southeast.bytepluses.com/api/coding/v3",
         strip_model_prefix=True,
+        litellm_prefix="",
     ),
 
 
@@ -192,6 +207,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Anthropic",
         backend="anthropic",
         supports_prompt_caching=True,
+        litellm_prefix="anthropic",
+        skip_prefixes=("anthropic/",),
     ),
     # OpenAI: SDK default base URL (no override needed)
     ProviderSpec(
@@ -201,6 +218,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="OpenAI",
         backend="openai_compat",
         supports_max_completion_tokens=True,
+        litellm_prefix="openai",
+        skip_prefixes=("openai/",),
     ),
     # OpenAI Codex: OAuth-based, dedicated provider
     ProviderSpec(
@@ -212,6 +231,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         detect_by_base_keyword="codex",
         default_api_base="https://chatgpt.com/backend-api",
         is_oauth=True,
+        litellm_prefix="",
     ),
     # GitHub Copilot: OAuth-based
     ProviderSpec(
@@ -223,6 +243,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         default_api_base="https://api.githubcopilot.com",
         strip_model_prefix=True,
         is_oauth=True,
+        litellm_prefix="",
     ),
     # DeepSeek: OpenAI-compatible at api.deepseek.com
     ProviderSpec(
@@ -232,6 +253,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="DeepSeek",
         backend="openai_compat",
         default_api_base="https://api.deepseek.com",
+        litellm_prefix="deepseek",
+        skip_prefixes=("deepseek/",),
     ),
     # Gemini: Google's OpenAI-compatible endpoint
     ProviderSpec(
@@ -241,6 +264,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Gemini",
         backend="openai_compat",
         default_api_base="https://generativelanguage.googleapis.com/v1beta/openai/",
+        litellm_prefix="gemini",
+        skip_prefixes=("gemini/",),
     ),
     # Zhipu (智谱): OpenAI-compatible at open.bigmodel.cn
     ProviderSpec(
@@ -251,6 +276,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         backend="openai_compat",
         env_extras=(("ZHIPUAI_API_KEY", "{api_key}"),),
         default_api_base="https://open.bigmodel.cn/api/paas/v4",
+        litellm_prefix="zhipu",
+        skip_prefixes=("zhipu/",),
     ),
     # DashScope (通义): Qwen models, OpenAI-compatible endpoint
     ProviderSpec(
@@ -260,6 +287,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="DashScope",
         backend="openai_compat",
         default_api_base="https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+        litellm_prefix="dashscope",
+        skip_prefixes=("dashscope/",),
     ),
     # Moonshot (月之暗面): Kimi models. K2.5 enforces temperature >= 1.0.
     ProviderSpec(
@@ -270,6 +299,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         backend="openai_compat",
         default_api_base="https://api.moonshot.ai/v1",
         model_overrides=(("kimi-k2.5", {"temperature": 1.0}),),
+        litellm_prefix="moonshot",
+        skip_prefixes=("moonshot/",),
     ),
     # MiniMax: OpenAI-compatible API
     ProviderSpec(
@@ -279,6 +310,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="MiniMax",
         backend="openai_compat",
         default_api_base="https://api.minimax.io/v1",
+        litellm_prefix="minimax",
+        skip_prefixes=("minimax/",),
     ),
     # Mistral AI: OpenAI-compatible API
     ProviderSpec(
@@ -288,6 +321,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Mistral",
         backend="openai_compat",
         default_api_base="https://api.mistral.ai/v1",
+        litellm_prefix="mistral",
+        skip_prefixes=("mistral/",),
     ),
     # Step Fun (阶跃星辰): OpenAI-compatible API
     ProviderSpec(
@@ -297,6 +332,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Step Fun",
         backend="openai_compat",
         default_api_base="https://api.stepfun.com/v1",
+        litellm_prefix="stepfun",
+        skip_prefixes=("stepfun/",),
     ),
     # Xiaomi MIMO (小米): OpenAI-compatible API
     ProviderSpec(
@@ -306,6 +343,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Xiaomi MIMO",
         backend="openai_compat",
         default_api_base="https://api.xiaomimimo.com/v1",
+        litellm_prefix="xiaomi_mimo",
+        skip_prefixes=("xiaomi_mimo/",),
     ),
     # === Local deployment (matched by config key, NOT by api_base) =========
     # vLLM / any OpenAI-compatible local server
@@ -316,6 +355,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="vLLM/Local",
         backend="openai_compat",
         is_local=True,
+        litellm_prefix="",
     ),
     # Ollama (local, OpenAI-compatible)
     ProviderSpec(
@@ -327,6 +367,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_local=True,
         detect_by_base_keyword="11434",
         default_api_base="http://localhost:11434/v1",
+        litellm_prefix="",
     ),
     # === OpenVINO Model Server (direct, local, OpenAI-compatible at /v3) ===
     ProviderSpec(
@@ -338,6 +379,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_direct=True,
         is_local=True,
         default_api_base="http://localhost:8000/v3",
+        litellm_prefix="",
     ),
     # === Auxiliary (not a primary LLM provider) ============================
     # Groq: mainly used for Whisper voice transcription, also usable for LLM
@@ -348,6 +390,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="Groq",
         backend="openai_compat",
         default_api_base="https://api.groq.com/openai/v1",
+        litellm_prefix="groq",
+        skip_prefixes=("groq/",),
     ),
     # Qianfan (百度千帆): OpenAI-compatible API
     ProviderSpec(
@@ -356,7 +400,9 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         env_key="QIANFAN_API_KEY",
         display_name="Qianfan",
         backend="openai_compat",
-        default_api_base="https://qianfan.baidubce.com/v2"
+        default_api_base="https://qianfan.baidubce.com/v2",
+        litellm_prefix="qianfan",
+        skip_prefixes=("qianfan/",),
     ),
 )
 
@@ -372,4 +418,53 @@ def find_by_name(name: str) -> ProviderSpec | None:
     for spec in PROVIDERS:
         if spec.name == normalized:
             return spec
+    return None
+
+
+def find_by_model(model: str) -> ProviderSpec | None:
+    """Find a provider spec by model name keywords.
+
+    Searches model-name keywords in PROVIDERS order (priority order).
+    For example: "claude-3-opus" matches anthropic (keyword "claude").
+    """
+    model_lower = model.lower()
+    for spec in PROVIDERS:
+        for keyword in spec.keywords:
+            if keyword in model_lower:
+                return spec
+    return None
+
+
+def find_gateway(
+    provider_name: str | None = None,
+    api_key: str | None = None,
+    api_base: str | None = None,
+) -> ProviderSpec | None:
+    """Detect gateway provider by config name, api_key prefix, or api_base keyword.
+
+    Gateway detection priority:
+      1. Explicit provider_name match (if it's a gateway)
+      2. api_key prefix (e.g., "sk-or-" for OpenRouter)
+      3. api_base URL keyword (e.g., "openrouter" in the URL)
+    """
+    # Try explicit provider name first
+    if provider_name:
+        spec = find_by_name(provider_name)
+        if spec and spec.is_gateway:
+            return spec
+
+    # Try api_key prefix detection (e.g., "sk-or-" for OpenRouter)
+    if api_key:
+        for spec in PROVIDERS:
+            if spec.is_gateway and spec.detect_by_key_prefix:
+                if api_key.startswith(spec.detect_by_key_prefix):
+                    return spec
+
+    # Try api_base keyword detection (e.g., "openrouter" in URL)
+    if api_base:
+        for spec in PROVIDERS:
+            if spec.is_gateway and spec.detect_by_base_keyword:
+                if spec.detect_by_base_keyword in api_base:
+                    return spec
+
     return None
