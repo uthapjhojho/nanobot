@@ -1,0 +1,12 @@
+[Unit]
+Description=Run cuk-infra heartbeat every 30 minutes
+Requires=cuk-infra-heartbeat.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=cuk-infra bash-first heartbeat check
+After=network.target cuk-infra.service
+
+[Service]
+Type=oneshot
+User=ayangbebep
+ExecStart=/opt/cuk_infra/heartbeat.sh
+StandardOutput=journal
+StandardError=journal
